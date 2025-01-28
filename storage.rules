@@ -1,0 +1,51 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Common functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    function isTechnician() {
+      return isAuthenticated() && 
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'technician';
+    }
+
+    // Inspection photos
+    match /inspections/{inspectionId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow create: if isTechnician() &&
+        request.resource.size < 10 * 1024 * 1024 && // 10MB max
+        request.resource.contentType.matches('image/.*');
+      allow delete: if isAdmin();
+    }
+
+    // Equipment photos
+    match /equipment/{equipmentId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow create: if isAdmin() || isTechnician() &&
+        request.resource.size < 10 * 1024 * 1024 && // 10MB max
+        request.resource.contentType.matches('image/.*');
+      allow delete: if isAdmin();
+    }
+
+    // Property photos
+    match /properties/{propertyId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() &&
+        request.resource.size < 10 * 1024 * 1024 && // 10MB max
+        request.resource.contentType.matches('image/.*');
+    }
+
+    // Default deny
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

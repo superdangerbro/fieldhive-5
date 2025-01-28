@@ -1,0 +1,56 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@mobile/*": ["mobile/src/*"],
+      "@web/*": ["web/src/*"],
+      "@shared/*": ["shared/*"],
+      "@schemas/*": ["shared/schemas/*"],
+      "@services/*": ["shared/services/*"],
+      "@utils/*": ["shared/utils/*"]
+    },
+    "target": "es2020",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "jsx": "react-jsx",
+    "allowJs": true,
+    "checkJs": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "strict": true,
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ]
+  },
+  "exclude": [
+    "node_modules",
+    "**/node_modules/*",
+    "build",
+    "dist",
+    ".next",
+    "out",
+    "coverage",
+    "**/*.test.js",
+    "**/*.spec.js"
+  ],
+  "include": [
+    "mobile/src/**/*",
+    "web/src/**/*",
+    "shared/**/*"
+  ],
+  "typeAcquisition": {
+    "include": [
+      "jest",
+      "react",
+      "react-native",
+      "expo"
+    ]
+  }
+}
