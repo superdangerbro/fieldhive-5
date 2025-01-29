@@ -52,6 +52,11 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Schemas collection (development mode)
+    match /schemas/{schemaId} {
+      allow read, write: if true;
+    }
+
     // Default deny
     match /{document=**} {
       allow read, write: if false;

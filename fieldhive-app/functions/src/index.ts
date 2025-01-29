@@ -15,11 +15,17 @@ import {
 } from './types';
 
 // Initialize Firebase Admin
-initializeApp();
+const firebaseApp = initializeApp();
+
+// Configure emulator connection if running locally
+if (process.env.FUNCTIONS_EMULATOR === 'true') {
+  process.env.FIRESTORE_EMULATOR_HOST = process.env.FIRESTORE_EMULATOR_HOST || 'localhost:8080';
+  process.env.FIREBASE_AUTH_EMULATOR_HOST = process.env.FIREBASE_AUTH_EMULATOR_HOST || 'localhost:9099';
+}
 
 // Initialize Express app
-const app = express();
-app.use(cors({ origin: true }));
+const expressApp = express();
+expressApp.use(cors({ origin: true }));
 
 // Firestore references
 const db = getFirestore();
@@ -166,7 +172,7 @@ export const onWorkOrderUpdate = firestore
   });
 
 // API Endpoints
-app.get('/api/equipment/:propertyId', async (req: AuthenticatedRequest, res: express.Response) => {
+expressApp.get('/api/equipment/:propertyId', async (req: AuthenticatedRequest, res: express.Response) => {
   try {
     const propertyId = req.params.propertyId;
     const snapshot = await db
@@ -174,7 +180,7 @@ app.get('/api/equipment/:propertyId', async (req: AuthenticatedRequest, res: exp
       .where('propertyId', '==', propertyId)
       .get();
 
-    const equipment = snapshot.docs.map(doc => ({
+    const equipment = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     })) as Equipment[];
@@ -186,4 +192,4 @@ app.get('/api/equipment/:propertyId', async (req: AuthenticatedRequest, res: exp
 });
 
 // Export the Express app as a Firebase Function
-export const api = https.onRequest(app);
+export const api = https.onRequest(expressApp);

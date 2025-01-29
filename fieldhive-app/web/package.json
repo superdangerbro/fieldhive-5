@@ -2,6 +2,7 @@
   "name": "temp",
   "version": "0.1.0",
   "private": true,
+  "description": "FieldHive web application. See root README.md for development/production setup.",
   "scripts": {
     "dev": "next dev --turbopack -p 3001",
     "build": "next build",
@@ -23,6 +24,7 @@
     "@mui/utils": "^6.4.1",
     "@swc/helpers": "^0.5.15",
     "clsx": "^2.1.1",
+    "firebase": "^10.7.0",
     "nanoid": "^5.0.9",
     "next": "15.1.6",
     "picocolors": "^1.1.1",
