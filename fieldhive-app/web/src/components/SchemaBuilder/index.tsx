@@ -1,10 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import { Box, Button, TextField, Grid, Paper, IconButton, Typography, MenuItem } from '@mui/material';
+import { useState, useEffect } from 'react';
+import { Box, Button, TextField, Grid, Paper, IconButton, Typography, MenuItem, Alert } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useForm, useFieldArray, Controller, Control } from 'react-hook-form';
+import { db, auth } from '@/lib/firebase';
+import { collection, addDoc } from 'firebase/firestore';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 interface Field {
   name: string;
@@ -63,7 +66,10 @@ const ControlledTextField = ({
 );
 
 export default function SchemaBuilder() {
-  const { control, handleSubmit } = useForm<Schema>({
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const { control, handleSubmit, reset } = useForm<Schema>({
     defaultValues: {
       name: '',
       description: '',
@@ -78,15 +84,39 @@ export default function SchemaBuilder() {
 
   const onSubmit = async (data: Schema) => {
     try {
+      setSaving(true);
       console.log('Saving schema:', data);
-      // TODO: Save to Firestore
+      
+      // Save to Firestore
+      const schemasRef = collection(db, 'schemas');
+      const docRef = await addDoc(schemasRef, {
+        ...data,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+
+      console.log('Schema saved with ID:', docRef.id);
+      
+      // Reset form
+      reset();
+      
+      // TODO: Show success message
     } catch (error) {
       console.error('Error saving schema:', error);
+      // TODO: Show error message
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
     <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 2 }}>
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+      
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <ControlledTextField
@@ -163,9 +193,10 @@ export default function SchemaBuilder() {
             variant="contained"
             color="primary"
             size="large"
+            disabled={saving}
             sx={{ mt: 2 }}
           >
-            Save Equipment Type
+            {saving ? 'Saving...' : 'Save Equipment Type'}
           </Button>
         </Grid>
       </Grid>
