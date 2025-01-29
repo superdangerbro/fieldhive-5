@@ -1,0 +1,60 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Common functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    function isTechnician() {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'technician';
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    // Equipment collection
+    match /equipment/{equipmentId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() || isTechnician();
+    }
+
+    // Inspections collection
+    match /inspections/{inspectionId} {
+      allow read: if isAuthenticated();
+      allow create: if isTechnician();
+      allow update, delete: if isAdmin() || 
+        (isTechnician() && resource.data.technicianId == request.auth.uid);
+    }
+
+    // Work orders collection
+    match /workOrders/{workOrderId} {
+      allow read: if isAuthenticated();
+      allow create: if isAdmin();
+      allow update: if isAdmin() || 
+        (isTechnician() && resource.data.assignedTechnicianId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    // Client properties collection
+    match /properties/{propertyId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,202 +1,184 @@
-# FieldHive App
+# FieldHive
 
-## Project Overview
+Field equipment management app for pest control companies.
 
-We are building a field equipment management app for a pest control company. The app will include:
+## Firebase Setup
 
-### Technician App:
-- View devices on a map.
-- Complete dynamic inspection forms.
-- Manage work orders.
+### Prerequisites
 
-### Admin Interface:
-- Manage roles and permissions.
-- Define equipment types and inspection forms.
+1. Node.js (>= 18)
+2. npm (>= 9)
+3. Firebase CLI (`npm install -g firebase-tools`)
+4. A Google account with Firebase access
 
-### Customer Portal:
-- View properties and devices.
-- Generate reports and service records.
+### Initial Setup
 
-## Technology Stack
+1. Install dependencies:
+```bash
+npm install
+```
 
-- **Frontend**: React Native (mobile) and React.js (web).
-- **Backend**: Firebase (Firestore, Auth, Storage).
-- **Database**: Firestore for flexible, schema-less data storage.
+2. Login to Firebase:
+```bash
+npm run firebase:login
+```
 
-## Folder Structure
+3. Select the project:
+```bash
+npm run firebase:use
+```
+
+4. Initialize local configuration:
+```bash
+firebase init
+```
+
+### Local Development
+
+1. Start the development environment (includes emulators):
+```bash
+npm run dev
+```
+
+2. Start only the emulators:
+```bash
+npm run emulators
+```
+
+3. Export emulator data:
+```bash
+npm run emulators:export
+```
+
+4. Start emulators with imported data:
+```bash
+npm run emulators:import
+```
+
+### Testing
+
+1. Run all tests:
+```bash
+npm test
+```
+
+2. Run tests in watch mode:
+```bash
+npm run test:watch
+```
+
+3. Generate coverage report:
+```bash
+npm run test:coverage
+```
+
+### Deployment
+
+1. Deploy everything:
+```bash
+npm run deploy
+```
+
+2. Deploy specific services:
+```bash
+npm run deploy:functions   # Deploy Cloud Functions
+npm run deploy:hosting    # Deploy web hosting
+npm run deploy:firestore  # Deploy Firestore rules and indexes
+npm run deploy:storage    # Deploy Storage rules
+```
+
+## Project Structure
 
 ```
 fieldhive-app/
-├── mobile/                  # React Native app for technicians
-│   ├── src/
-│   │   ├── components/      # Reusable UI components
-│   │   ├── screens/         # App screens (e.g., Map, Inspections)
-│   │   ├── services/        # Firebase and API services
-│   │   ├── schemas/         # Dynamic schema definitions (e.g., forms, equipment types)
-│   │   ├── contexts/        # React contexts for global state (e.g., user, permissions)
-│   │   ├── hooks/           # Custom React hooks
-│   │   ├── assets/          # Images, icons, fonts
-│   │   └── App.js           # Main app entry point
-│   ├── App.js               # Root component
-│   ├── app.json             # Expo configuration
-│   └── package.json         # Dependencies and scripts
-│
-├── web/                     # React.js app for customers and admins
-│   ├── src/
-│   │   ├── components/      # Reusable UI components
-│   │   ├── pages/           # App pages (e.g., Dashboard, Reports)
-│   │   ├── services/        # Firebase and API services
-│   │   ├── schemas/         # Dynamic schema definitions
-│   │   ├── contexts/        # React contexts for global state
-│   │   ├── hooks/           # Custom React hooks
-│   │   ├── assets/          # Images, icons, fonts
-│   │   └── App.js           # Main app entry point
-│   ├── public/              # Static assets (e.g., index.html)
-│   ├── package.json         # Dependencies and scripts
-│   └── next.config.js       # Next.js configuration (if using Next.js)
-│
-├── functions/               # Firebase Functions for backend logic
-│   ├── src/
-│   │   ├── services/        # Firebase services (e.g., Firestore, Auth)
-│   │   ├── schemas/         # Schema validation and utilities
-│   │   └── index.js         # Firebase Functions entry point
-│   ├── .firebaserc          # Firebase project configuration
-│   ├── firebase.json        # Firebase deployment settings
-│   └── package.json         # Dependencies and scripts
-│
-├── shared/                  # Shared code between mobile and web
-│   ├── schemas/             # Shared schema definitions
-│   ├── services/            # Shared Firebase and API services
-│   └── utils/               # Shared utilities (e.g., validation, formatting)
-│
-├── .gitignore               # Files to ignore in Git
-└── package.json             # Root dependencies and scripts (if using a monorepo)
+├── functions/           # Firebase Cloud Functions
+│   ├── src/            # TypeScript source files
+│   │   ├── index.ts    # Functions entry point
+│   │   └── types.ts    # TypeScript type definitions
+│   └── package.json    # Functions dependencies
+├── mobile/             # React Native mobile app
+├── web/               # React web app
+├── shared/            # Shared code between mobile and web
+├── firestore.rules    # Firestore security rules
+├── firestore.indexes.json  # Firestore indexes
+├── storage.rules      # Storage security rules
+├── firebase.json      # Firebase configuration
+└── package.json       # Root package.json
 ```
 
-## Initial Setup Steps
+## Firebase Services Used
 
-### Set Up Firebase:
-1. Create a Firebase project at Firebase Console.
-2. Enable Firestore, Authentication, and Storage.
-3. Add your Firebase configuration to the app.
+1. **Firestore**
+   - Document database for storing equipment, inspections, and work orders
+   - Security rules in `firestore.rules`
+   - Indexes in `firestore.indexes.json`
 
-### Initialize the Mobile App:
-1. Use Expo to create a new React Native app:
-   ```
-   npx create-expo-app mobile
-   ```
-2. Install dependencies:
-   ```
-   cd mobile
-   npm install @react-navigation/native @react-navigation/stack react-native-maps firebase
-   ```
+2. **Cloud Functions**
+   - Backend logic for data processing and automation
+   - Written in TypeScript
+   - Located in `functions/` directory
 
-### Initialize the Web App:
-1. Use Next.js to create a new React.js app:
-   ```
-   npx create-next-app web
-   ```
-2. Install dependencies:
-   ```
-   cd web
-   npm install firebase react-leaflet leaflet
-   ```
+3. **Hosting**
+   - Hosts the web application
+   - Configuration in `firebase.json`
 
-### Initialize Firebase Functions:
-1. Install the Firebase CLI:
-   ```
-   npm install -g firebase-tools
-   ```
-2. Initialize Firebase Functions:
-   ```
-   firebase init functions
-   ```
+4. **Storage**
+   - Stores inspection photos and other files
+   - Security rules in `storage.rules`
 
-### Set Up Shared Code:
-- Create a shared folder for code reused between mobile and web.
-- Use a monorepo tool like Turborepo or Nx to manage shared dependencies.
+## Security Rules
 
-## Key Files to Create
+### Firestore Rules
+- User authentication required for all operations
+- Role-based access control (admin, technician, client)
+- Document-level security for sensitive data
 
-### Firebase Configuration:
-Create a `firebase.js` file in `mobile/src/services/` and `web/src/services/`:
+### Storage Rules
+- Authentication required for all operations
+- File size limits (10MB per file)
+- File type restrictions (images only)
+- Role-based access for uploads and deletions
 
-```javascript
-import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+## Environment Variables
 
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID",
-};
+Create a `.env` file in the root directory with the following variables:
 
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
-export const auth = getAuth(app);
+```env
+# Firebase Configuration
+FIREBASE_PROJECT_ID=fieldhive-5-0
+FIREBASE_API_KEY=your-api-key
+FIREBASE_AUTH_DOMAIN=your-auth-domain
+FIREBASE_STORAGE_BUCKET=your-storage-bucket
+
+# Development
+NODE_ENV=development
 ```
 
-### Dynamic Form Component:
-Create a `DynamicForm.js` file in `mobile/src/components/`:
+## Common Issues
 
-```javascript
-import React from 'react';
-import { View, Text, TextInput, Picker } from 'react-native';
+1. **Deployment Failures**
+   - Ensure you're logged in (`npm run firebase:login`)
+   - Check project selection (`npm run firebase:use`)
+   - Verify build process (`npm run build`)
 
-const DynamicForm = ({ fields }) => {
-  return (
-    <View>
-      {fields.map((field) => (
-        <View key={field.name}>
-          <Text>{field.label}</Text>
-          {field.type === 'text' && <TextInput placeholder={field.label} />}
-          {field.type === 'select' && (
-            <Picker>
-              {field.options.map((option) => (
-                <Picker.Item key={option} label={option} value={option} />
-              ))}
-            </Picker>
-          )}
-        </View>
-      ))}
-    </View>
-  );
-};
+2. **Emulator Issues**
+   - Clear emulator data: Delete the `emulator-data` directory
+   - Check port conflicts in `firebase.json`
+   - Ensure Java is installed for Firestore emulator
 
-export default DynamicForm;
-```
+3. **Function Deployment Errors**
+   - Run `npm run lint` in functions directory
+   - Check TypeScript compilation (`npm run build:functions`)
+   - Verify Node.js version matches `engines` in `package.json`
 
-### Role-Based Access Control:
-Create a `permissions.js` file in `shared/schemas/`:
+## Contributing
 
-```javascript
-export const PERMISSIONS = {
-  Devices: ['read:devices', 'write:devices', 'delete:devices'],
-  Inspections: ['read:inspections', 'write:inspections', 'delete:inspections'],
-  WorkOrders: ['read:workOrders', 'write:workOrders', 'delete:workOrders'],
-};
-```
+1. Create a feature branch
+2. Make changes
+3. Run tests (`npm test`)
+4. Run linting (`npm run lint`)
+5. Submit pull request
 
-## Next Steps
+## License
 
-### Set Up Git:
-1. Initialize a Git repository:
-   ```
-   git init
-   git add .
-   git commit -m "Initial commit"
-   ```
-
-### Push to GitHub:
-1. Create a new repository on GitHub.
-2. Push your code:
-   ```
-   git remote add origin https://github.com/your-username/fieldhive-app.git
-   git push -u origin main
-   ```
-
-By following these instructions, you will have a solid foundation to build the app efficiently.
+UNLICENSED - All rights reserved

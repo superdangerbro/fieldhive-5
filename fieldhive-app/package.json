@@ -1,0 +1,72 @@
+{
+  "name": "fieldhive",
+  "version": "1.0.0",
+  "description": "Field equipment management app for pest control companies",
+  "private": true,
+  "workspaces": [
+    "mobile",
+    "web",
+    "functions",
+    "shared"
+  ],
+  "scripts": {
+    "start": "npm run dev",
+    "dev": "concurrently \"npm run dev:web\" \"npm run dev:functions\" \"npm run emulators\"",
+    "dev:web": "cd web && npm run dev",
+    "dev:functions": "cd functions && npm run build:watch",
+    "build": "npm run build:web && npm run build:functions",
+    "build:web": "cd web && npm run build",
+    "build:functions": "cd functions && npm run build",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
+    "deploy": "node scripts/deploy.js",
+    "deploy:functions": "firebase deploy --only functions",
+    "deploy:hosting": "firebase deploy --only hosting",
+    "deploy:firestore": "firebase deploy --only firestore",
+    "deploy:storage": "firebase deploy --only storage",
+    "emulators": "firebase emulators:start",
+    "emulators:export": "firebase emulators:export ./emulator-data",
+    "emulators:import": "firebase emulators:start --import=./emulator-data",
+    "firebase:login": "firebase login",
+    "firebase:logout": "firebase logout",
+    "firebase:use": "firebase use",
+    "firebase:serve": "firebase serve",
+    "firebase:init-db": "node scripts/init-db.js",
+    "firebase:init-db:emulator": "cross-env FIRESTORE_EMULATOR_HOST=localhost:8080 node scripts/init-db.js",
+    "firebase:rules:deploy": "firebase deploy --only firestore:rules,storage:rules",
+    "firebase:indexes:deploy": "firebase deploy --only firestore:indexes",
+    "firebase:shell": "firebase functions:shell",
+    "firebase:logs": "firebase functions:log",
+    "clean": "rimraf ./**/node_modules ./**/build ./**/dist ./**/coverage",
+    "clean:emulator": "rimraf ./emulator-data",
+    "postinstall": "npm run build"
+  },
+  "dependencies": {
+    "@firebase/firestore-types": "^3.0.3",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "firebase-admin": "^11.11.1",
+    "rimraf": "^5.0.5"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-prettier": "^5.1.2",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "prettier": "^3.1.1",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18",
+    "npm": ">=9"
+  },
+  "author": "",
+  "license": "UNLICENSED"
+}
