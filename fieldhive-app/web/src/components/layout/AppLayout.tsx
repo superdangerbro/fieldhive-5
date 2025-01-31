@@ -1,55 +1,97 @@
+/**
+ * Application Layout Component
+ * 
+ * Provides the main layout structure for the application including:
+ * - Responsive sidebar navigation
+ * - Dynamic menu items based on user role
+ * - Nested menu items for admin settings
+ */
+
 'use client';
 
 import { useState } from 'react';
 import { Box, useMediaQuery, useTheme } from '@mui/material';
 import Header from './Header';
 import Sidebar from './Sidebar';
+import { usePermissions } from '@/hooks/usePermissions';
+import { UserRoles } from '@/services/base.service';
+
+// Icons
+import HomeIcon from '@mui/icons-material/Home';
+import BuildIcon from '@mui/icons-material/Build';
+import SettingsIcon from '@mui/icons-material/Settings';
+import GroupIcon from '@mui/icons-material/Group';
+import SecurityIcon from '@mui/icons-material/Security';
+import DashboardIcon from '@mui/icons-material/Dashboard';
 
 const SIDEBAR_WIDTH = 280;
-const CLOSED_SIDEBAR_WIDTH = 0;
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+interface Props {
+  children: React.ReactNode;
+}
+
+export default function AppLayout({ children }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-
-  // Auto-close sidebar on mobile
   const isOpen = !isMobile || sidebarOpen;
+  const { can } = usePermissions();
+
+  // Define menu items based on user permissions
+  const menuItems = [
+    { text: 'Home', href: '/', icon: <HomeIcon /> },
+  ];
+
+  // Add admin menu items
+  if (can([UserRoles.ADMIN, UserRoles.SUPER_ADMIN])) {
+    menuItems.push({ text: 'Dashboard', href: '/admin/dashboard', icon: <DashboardIcon /> });
+  }
+
+  menuItems.push({ text: 'Equipment', href: '/equipment', icon: <BuildIcon /> });
+
+  // Add settings menu for admin users
+  if (can([UserRoles.ADMIN, UserRoles.SUPER_ADMIN])) {
+    menuItems.push({
+      text: 'Settings',
+      href: '/admin/settings',
+      icon: <SettingsIcon />,
+      children: [
+        { text: 'Users', href: '/admin/users', icon: <GroupIcon /> },
+        { text: 'Permissions', href: '/admin/permissions', icon: <SecurityIcon /> },
+      ],
+    });
+  }
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+    <>
+      <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
       <Sidebar 
         open={isOpen} 
         onClose={() => setSidebarOpen(false)}
         width={SIDEBAR_WIDTH}
+        menuItems={menuItems}
       />
-      
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          width: `calc(100% - ${isOpen ? SIDEBAR_WIDTH : CLOSED_SIDEBAR_WIDTH}px)`,
-          ml: isOpen ? `${SIDEBAR_WIDTH}px` : 0,
-          transition: theme.transitions.create(['margin', 'width'], {
+          ml: { md: `${SIDEBAR_WIDTH}px` },
+          mt: '64px',
+          p: 3,
+          transition: theme.transitions.create('margin', {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
           }),
+          ...(isOpen && {
+            transition: theme.transitions.create('margin', {
+              easing: theme.transitions.easing.easeOut,
+              duration: theme.transitions.duration.enteringScreen,
+            }),
+          }),
         }}
       >
-        <Header onMenuClick={() => setSidebarOpen(!isOpen)} />
-        <Box 
-          component="div"
-          sx={{
-            p: 3,
-            pt: 10,
-            maxWidth: '1600px',
-            margin: '0 auto',
-            width: '100%',
-          }}
-        >
-          {children}
-        </Box>
+        {children}
       </Box>
-    </Box>
+    </>
   );
 }

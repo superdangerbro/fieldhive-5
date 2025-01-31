@@ -1,5 +1,26 @@
+/**
+ * Sidebar Navigation Component
+ * 
+ * A responsive sidebar that displays the main navigation menu.
+ * Shows different menu items based on user's role.
+ * 
+ * Features:
+ * - Persistent drawer on desktop
+ * - Collapsible nested menu items
+ * - Highlights active route
+ * - Custom styling for menu items
+ * 
+ * @param {Object} props Component props
+ * @param {boolean} props.open Whether the sidebar is open
+ * @param {() => void} props.onClose Callback when the sidebar should close
+ * @param {number} props.width Width of the sidebar in pixels
+ * @param {MenuItem[]} props.menuItems Array of menu items to display
+ */
+
 'use client';
 
+import { useState } from 'react';
+import Image from 'next/image';
 import {
   Box,
   Drawer,
@@ -9,73 +30,85 @@ import {
   ListItemIcon,
   ListItemText,
   Typography,
-  useTheme,
-  alpha,
+  Collapse,
 } from '@mui/material';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import InventoryIcon from '@mui/icons-material/Inventory';
-import AssignmentIcon from '@mui/icons-material/Assignment';
-import BarChartIcon from '@mui/icons-material/BarChart';
-import SettingsIcon from '@mui/icons-material/Settings';
-import Image from 'next/image';
-import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
+
+interface MenuItem {
+  text: string;
+  href: string;
+  icon: React.ReactNode;
+  children?: MenuItem[];
+}
 
 interface SidebarProps {
   open: boolean;
   onClose: () => void;
   width: number;
+  menuItems: MenuItem[];
 }
 
-const menuItems = [
-  {
-    label: 'Dashboard',
-    icon: <DashboardIcon />,
-    path: '/',
-  },
-  {
-    label: 'Equipment',
-    icon: <InventoryIcon />,
-    path: '/equipment',
-  },
-  {
-    label: 'Inspections',
-    icon: <AssignmentIcon />,
-    path: '/inspections',
-  },
-  {
-    label: 'Reports',
-    icon: <BarChartIcon />,
-    path: '/reports',
-  },
-  {
-    label: 'Settings',
-    icon: <SettingsIcon />,
-    path: '/settings',
-  },
-];
-
-export default function Sidebar({ open, onClose, width }: SidebarProps) {
-  const theme = useTheme();
+export default function Sidebar({ open, onClose, width, menuItems }: SidebarProps) {
   const pathname = usePathname();
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
 
-  const content = (
-    <Box
+  const handleMenuClick = (text: string) => {
+    setOpenMenus(prev => ({
+      ...prev,
+      [text]: !prev[text],
+    }));
+  };
+
+  const renderMenuItem = (item: MenuItem, depth = 0) => {
+    const isSelected = pathname === item.href;
+    const hasChildren = item.children && item.children.length > 0;
+    const isOpen = openMenus[item.text];
+
+    return (
+      <Box key={item.text}>
+        <ListItem disablePadding>
+          <ListItemButton
+            component={hasChildren ? 'div' : Link}
+            href={hasChildren ? undefined : item.href}
+            selected={isSelected}
+            onClick={hasChildren ? () => handleMenuClick(item.text) : undefined}
+            sx={{ pl: depth * 2 + 2 }}
+          >
+            <ListItemIcon>{item.icon}</ListItemIcon>
+            <ListItemText primary={item.text} />
+            {hasChildren && (isOpen ? <ExpandLess /> : <ExpandMore />)}
+          </ListItemButton>
+        </ListItem>
+        
+        {hasChildren && (
+          <Collapse in={isOpen} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              {item.children.map(child => renderMenuItem(child, depth + 1))}
+            </List>
+          </Collapse>
+        )}
+      </Box>
+    );
+  };
+
+  return (
+    <Drawer
+      open={open}
+      onClose={onClose}
+      variant="persistent"
       sx={{
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
+        width: open ? width : 0,
+        flexShrink: 0,
+        '& .MuiDrawer-paper': {
+          width,
+          boxSizing: 'border-box',
+        },
       }}
     >
-      {/* Logo */}
-      <Box
-        sx={{
-          p: 3,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1,
-        }}
-      >
+      <Box sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
         <Image
           src="/logo.svg"
           alt="FieldHive Logo"
@@ -83,111 +116,14 @@ export default function Sidebar({ open, onClose, width }: SidebarProps) {
           height={32}
           priority
         />
-        <Typography
-          variant="h6"
-          sx={{
-            fontWeight: 700,
-            background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-          }}
-        >
+        <Typography variant="h6" sx={{ ml: 2 }}>
           FieldHive
         </Typography>
       </Box>
 
-      {/* Navigation */}
-      <List sx={{ px: 2, flex: 1 }}>
-        {menuItems.map((item) => {
-          const isActive = pathname === item.path;
-
-          return (
-            <ListItem key={item.path} disablePadding sx={{ mb: 1 }}>
-              <ListItemButton
-                component={Link}
-                href={item.path}
-                selected={isActive}
-                sx={{
-                  borderRadius: 1,
-                  '&.Mui-selected': {
-                    bgcolor: alpha(theme.palette.primary.main, 0.08),
-                    '&:hover': {
-                      bgcolor: alpha(theme.palette.primary.main, 0.12),
-                    },
-                    '& .MuiListItemIcon-root': {
-                      color: theme.palette.primary.main,
-                    },
-                  },
-                }}
-              >
-                <ListItemIcon
-                  sx={{
-                    minWidth: 40,
-                    color: isActive ? 'primary.main' : 'text.secondary',
-                  }}
-                >
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText
-                  primary={item.label}
-                  primaryTypographyProps={{
-                    fontWeight: isActive ? 600 : 400,
-                  }}
-                />
-              </ListItemButton>
-            </ListItem>
-          );
-        })}
+      <List>
+        {menuItems.map(item => renderMenuItem(item))}
       </List>
-
-      {/* Version */}
-      <Box sx={{ p: 2.5, pt: 2 }}>
-        <Typography variant="caption" color="text.disabled">
-          Version 5.0.0
-        </Typography>
-      </Box>
-    </Box>
-  );
-
-  return (
-    <Box
-      component="nav"
-      sx={{
-        width: { md: width },
-        flexShrink: { md: 0 },
-      }}
-    >
-      <Drawer
-        variant="temporary"
-        open={open}
-        onClose={onClose}
-        ModalProps={{ keepMounted: true }}
-        sx={{
-          display: { xs: 'block', md: 'none' },
-          '& .MuiDrawer-paper': {
-            width,
-            bgcolor: 'background.default',
-            borderRight: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-          },
-        }}
-      >
-        {content}
-      </Drawer>
-
-      <Drawer
-        variant="permanent"
-        sx={{
-          display: { xs: 'none', md: 'block' },
-          '& .MuiDrawer-paper': {
-            width,
-            bgcolor: 'background.default',
-            borderRight: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-          },
-        }}
-        open
-      >
-        {content}
-      </Drawer>
-    </Box>
+    </Drawer>
   );
 }

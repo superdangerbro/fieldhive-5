@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Avatar,
   Box,
@@ -16,10 +17,12 @@ import PersonIcon from '@mui/icons-material/Person';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { alpha } from '@mui/material/styles';
+import { auth } from '@/lib/firebase';
 
 export default function ProfileMenu() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const theme = useTheme();
+  const router = useRouter();
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -27,6 +30,16 @@ export default function ProfileMenu() {
 
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+      handleClose();
+      router.push('/login');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   const menuItems = [
@@ -49,10 +62,7 @@ export default function ProfileMenu() {
     {
       label: 'Logout',
       icon: <LogoutIcon fontSize="small" />,
-      onClick: () => {
-        console.log('Logout clicked');
-        handleClose();
-      },
+      onClick: handleLogout,
       divider: true,
     },
   ];
@@ -103,10 +113,10 @@ export default function ProfileMenu() {
       >
         {menuItems.map((item, index) => (
           <Box key={item.label}>
-            {item.divider && index > 0 && <Divider sx={{ my: 0.5 }} />}
+            {item.divider && index > 0 && <Divider sx={{ my: 1 }} />}
             <MenuItem onClick={item.onClick}>
               <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText>{item.label}</ListItemText>
+              <ListItemText primary={item.label} />
             </MenuItem>
           </Box>
         ))}

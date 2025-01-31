@@ -2,24 +2,42 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Common functions
+    // Helper functions
     function isAuthenticated() {
       return request.auth != null;
     }
-    
+
     function isAdmin() {
       return isAuthenticated() && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super_admin');
     }
-    
+
+    function isCurrentUser(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
     function isTechnician() {
       return isAuthenticated() && 
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'technician';
     }
 
-    // Users collection
+    function isSignedIn() {
+      return isAuthenticated();
+    }
+
+    // User profiles
     match /users/{userId} {
-      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      // Allow user creation without being authenticated first
+      allow create: if request.auth.uid == userId;
+      allow read: if isAuthenticated();
+      allow update: if isAdmin() || isCurrentUser(userId);
+      allow delete: if isAdmin();
+    }
+
+    // Equipment types
+    match /equipmentTypes/{typeId} {
+      allow read: if isAuthenticated();
       allow write: if isAdmin();
     }
 
@@ -49,6 +67,27 @@ service cloud.firestore {
     // Client properties collection
     match /properties/{propertyId} {
       allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // Form system collections
+    match /fieldRegistry/{fieldId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /formTemplates/{templateId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /formCategories/{categoryId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /formSubCategories/{subcategoryId} {
+      allow read: if isSignedIn();
       allow write: if isAdmin();
     }
 
